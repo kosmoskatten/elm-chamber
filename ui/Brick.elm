@@ -1,9 +1,17 @@
-module Brick exposing (Brick, vertexShader, fragmentShader)
+module Brick
+    exposing
+        ( Brick
+        , makeBrick
+        , yaw
+        , vertexShader
+        , fragmentShader
+        )
 
-import Math.Matrix4 exposing (Mat4)
-import Math.Vector3 exposing (Vec3, vec3)
+import List exposing (concatMap)
+import Math.Matrix4 exposing (Mat4, identity, mul)
+import Math.Vector3 exposing (Vec3, vec3, getX, getY, getZ)
 import Math.Vector4 exposing (Vec4, vec4)
-import Transform exposing (pitch)
+import Transform as T
 import WebGL exposing (..)
 
 
@@ -11,6 +19,7 @@ type alias Brick =
     { mesh : Drawable Vertex
     , coord : Vec3
     , pitch : Float
+    , yaw : Float
     , modelView : Mat4
     }
 
@@ -19,6 +28,76 @@ type alias Vertex =
     { position : Vec3
     , color : Vec4
     }
+
+
+type alias Face =
+    List ( Vertex, Vertex, Vertex )
+
+
+makeBrick : Vec3 -> Brick
+makeBrick coord =
+    let
+        brick =
+            { mesh = mesh
+            , coord = coord
+            , pitch = -pi / 8
+            , yaw = 0
+            , modelView = Math.Matrix4.identity
+            }
+
+        modelView =
+            makeModelView brick
+    in
+        { brick | modelView = modelView }
+
+
+yaw : Float -> Brick -> Brick
+yaw theta brick =
+    let
+        newBrick =
+            { brick | yaw = theta }
+
+        modelView =
+            makeModelView newBrick
+    in
+        { newBrick | modelView = modelView }
+
+
+mesh : Drawable Vertex
+mesh =
+    Triangle <|
+        concatMap makeFace
+            [ -- Front
+              ( ( vec3 -1 1 1, vec3 1 1 1, vec3 -1 -1 1, vec3 1 -1 1 ), vec4 1 0 0 1 )
+              -- Left
+            , ( ( vec3 -1 1 -1, vec3 -1 1 1, vec3 -1 -1 -1, vec3 -1 -1 1 ), vec4 0 1 0 1 )
+              -- Right
+            , ( ( vec3 1 1 1, vec3 1 1 -1, vec3 1 -1 1, vec3 1 -1 -1 ), vec4 0 0 1 1 )
+              -- Back
+            , ( ( vec3 1 1 -1, vec3 -1 1 -1, vec3 1 -1 -1, vec3 -1 -1 -1 ), vec4 1 1 0 1 )
+              -- Top
+            , ( ( vec3 -1 1 -1, vec3 1 1 -1, vec3 -1 1 1, vec3 1 1 1 ), vec4 0.5 0 0 1 )
+              -- Bottom
+            , ( ( vec3 -1 -1 1, vec3 1 -1 1, vec3 -1 -1 -1, vec3 1 -1 -1 ), vec4 0.5 0 0 1 )
+            ]
+
+
+makeFace : ( ( Vec3, Vec3, Vec3, Vec3 ), Vec4 ) -> Face
+makeFace ( ( p1, p2, p3, p4 ), color ) =
+    [ ( Vertex p1 color
+      , Vertex p2 color
+      , Vertex p3 color
+      )
+    , ( Vertex p3 color
+      , Vertex p2 color
+      , Vertex p4 color
+      )
+    ]
+
+
+makeModelView : Brick -> Mat4
+makeModelView brick =
+    mul (T.moveTo brick.coord) <| mul (T.yaw brick.yaw) (T.pitch brick.pitch)
 
 
 

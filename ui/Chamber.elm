@@ -1,42 +1,60 @@
 module Chamber exposing (Model, Msg, init, update, view, subscriptions)
 
-import Brick exposing (..)
+import AnimationFrame exposing (diffs)
+import Brick exposing (Brick, makeBrick, yaw)
 import Html exposing (..)
 import Html.Attributes as Attr
+import Math.Matrix4 exposing (Mat4, makePerspective)
+import Math.Vector3 exposing (vec3)
+import Time exposing (Time, inSeconds)
 import WebGL exposing (..)
 
 
 type alias Model =
-    Int
+    { perspective : Mat4
+    , brick : Brick
+    }
 
 
 type Msg
-    = NoOp
+    = Animate Time
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( 1, Cmd.none )
+    ( { perspective =
+            makePerspective 45 (toFloat sceneWidth / toFloat sceneHeight) 0.1 100
+      , brick = makeBrick <| vec3 0 0 -10
+      }
+    , Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        Animate dt ->
+            ( { model | brick = Brick.yaw (inSeconds dt * (pi / 4) + model.brick.yaw) model.brick }, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
-    div [] [ text "Chamber Scenery" ]
+    div []
+        [ p [] [ text "Chamber Scenery" ]
+        , viewScene model
+        ]
 
 
 viewScene : Model -> Html Msg
 viewScene model =
-    WebGL.toHtml [ Attr.width sceneWidth, Attr.height sceneHeight ] []
+    WebGL.toHtml [ Attr.width sceneWidth, Attr.height sceneHeight ]
+        [ render Brick.vertexShader Brick.fragmentShader model.brick.mesh { perspective = model.perspective, modelView = model.brick.modelView }
+        ]
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    diffs Animate
 
 
 sceneWidth : Int
