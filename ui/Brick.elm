@@ -40,7 +40,7 @@ makeBrick coord =
         brick =
             { mesh = mesh
             , coord = coord
-            , pitch = -pi / 8
+            , pitch = 0
             , yaw = 0
             , modelView = Math.Matrix4.identity
             }
@@ -68,17 +68,17 @@ mesh =
     Triangle <|
         concatMap makeFace
             [ -- Front
-              ( ( vec3 -1 1 1, vec3 1 1 1, vec3 -1 -1 1, vec3 1 -1 1 ), vec4 1 0 0 1 )
+              ( ( vec3 -0.5 0.5 0.5, vec3 0.5 0.5 0.5, vec3 -0.5 -0.5 0.5, vec3 0.5 -0.5 0.5 ), vec4 1 0 0 1 )
               -- Left
-            , ( ( vec3 -1 1 -1, vec3 -1 1 1, vec3 -1 -1 -1, vec3 -1 -1 1 ), vec4 0 1 0 1 )
+            , ( ( vec3 -0.5 0.5 -0.5, vec3 -0.5 0.5 0.5, vec3 -0.5 -0.5 -0.5, vec3 -0.5 -0.5 0.5 ), vec4 0 1 0 1 )
               -- Right
-            , ( ( vec3 1 1 1, vec3 1 1 -1, vec3 1 -1 1, vec3 1 -1 -1 ), vec4 0 0 1 1 )
+            , ( ( vec3 0.5 0.5 0.5, vec3 0.5 0.5 -0.5, vec3 0.5 -0.5 0.5, vec3 0.5 -0.5 -0.5 ), vec4 0 0 1 1 )
               -- Back
-            , ( ( vec3 1 1 -1, vec3 -1 1 -1, vec3 1 -1 -1, vec3 -1 -1 -1 ), vec4 1 1 0 1 )
+            , ( ( vec3 0.5 0.5 -0.5, vec3 -0.5 0.5 -0.5, vec3 0.5 -0.5 -0.5, vec3 -0.5 -0.5 -0.5 ), vec4 1 1 0 1 )
               -- Top
-            , ( ( vec3 -1 1 -1, vec3 1 1 -1, vec3 -1 1 1, vec3 1 1 1 ), vec4 0.5 0 0 1 )
+            , ( ( vec3 -0.5 0.5 -0.5, vec3 0.5 0.5 -0.5, vec3 -0.5 0.5 0.5, vec3 0.5 0.5 0.5 ), vec4 0.5 0 0 1 )
               -- Bottom
-            , ( ( vec3 -1 -1 1, vec3 1 -1 1, vec3 -1 -1 -1, vec3 1 -1 -1 ), vec4 0.5 0 0 1 )
+            , ( ( vec3 -0.5 -0.5 0.5, vec3 0.5 -0.5 0.5, vec3 -0.5 -0.5 -0.5, vec3 0.5 -0.5 -0.5 ), vec4 0.5 0 0 1 )
             ]
 
 

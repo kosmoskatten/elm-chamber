@@ -13,6 +13,7 @@ import WebGL exposing (..)
 type alias Model =
     { perspective : Mat4
     , brick : Brick
+    , floor : List Brick
     }
 
 
@@ -24,7 +25,8 @@ init : ( Model, Cmd Msg )
 init =
     ( { perspective =
             makePerspective 45 (toFloat sceneWidth / toFloat sceneHeight) 0.1 100
-      , brick = makeBrick <| vec3 0 0 -10
+      , brick = makeBrick <| vec3 0 10 -50
+      , floor = makeFloor
       }
     , Cmd.none
     )
@@ -47,14 +49,29 @@ view model =
 
 viewScene : Model -> Html Msg
 viewScene model =
-    WebGL.toHtml [ Attr.width sceneWidth, Attr.height sceneHeight ]
-        [ render Brick.vertexShader Brick.fragmentShader model.brick.mesh { perspective = model.perspective, modelView = model.brick.modelView }
-        ]
+    WebGL.toHtml [ Attr.width sceneWidth, Attr.height sceneHeight ] <|
+        List.map (renderBrick model.perspective) [ model.brick ]
+            ++ List.map (renderBrick model.perspective) model.floor
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     diffs Animate
+
+
+renderBrick : Mat4 -> Brick -> Renderable
+renderBrick perspective brick =
+    render Brick.vertexShader Brick.fragmentShader brick.mesh { perspective = perspective, modelView = brick.modelView }
+
+
+makeFloor : List Brick
+makeFloor =
+    List.concatMap (makeFloorStrip -100 0 -10) <| List.range -10 10
+
+
+makeFloorStrip : Int -> Int -> Float -> Int -> List Brick
+makeFloorStrip far near y x =
+    List.map (\z -> makeBrick <| vec3 (toFloat x) y (toFloat z)) <| List.range far near
 
 
 sceneWidth : Int
