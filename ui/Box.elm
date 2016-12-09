@@ -1,10 +1,9 @@
-module Brick
+module Box
     exposing
-        ( Brick
-        , makeBrick
+        ( Box
+        , makeBox
         , yaw
-        , vertexShader
-        , fragmentShader
+        , render
         )
 
 import List exposing (concatMap)
@@ -12,10 +11,10 @@ import Math.Matrix4 exposing (Mat4, identity, mul)
 import Math.Vector3 exposing (Vec3, vec3, getX, getY, getZ)
 import Math.Vector4 exposing (Vec4, vec4)
 import Transform as T
-import WebGL exposing (..)
+import WebGL exposing (Drawable(..), Renderable, Shader)
 
 
-type alias Brick =
+type alias Box =
     { mesh : Drawable Vertex
     , coord : Vec3
     , pitch : Float
@@ -34,10 +33,10 @@ type alias Face =
     List ( Vertex, Vertex, Vertex )
 
 
-makeBrick : Vec3 -> Brick
-makeBrick coord =
+makeBox : Vec3 -> Box
+makeBox coord =
     let
-        brick =
+        box =
             { mesh = mesh
             , coord = coord
             , pitch = 0
@@ -46,21 +45,26 @@ makeBrick coord =
             }
 
         modelView =
-            makeModelView brick
+            makeModelView box
     in
-        { brick | modelView = modelView }
+        { box | modelView = modelView }
 
 
-yaw : Float -> Brick -> Brick
-yaw theta brick =
+yaw : Float -> Box -> Box
+yaw theta box =
     let
-        newBrick =
-            { brick | yaw = theta }
+        newBox =
+            { box | yaw = theta }
 
         modelView =
-            makeModelView newBrick
+            makeModelView newBox
     in
-        { newBrick | modelView = modelView }
+        { newBox | modelView = modelView }
+
+
+render : Mat4 -> Box -> Renderable
+render perspective box =
+    WebGL.render vertexShader fragmentShader box.mesh { perspective = perspective, modelView = box.modelView }
 
 
 mesh : Drawable Vertex
@@ -68,17 +72,17 @@ mesh =
     Triangle <|
         concatMap makeFace
             [ -- Front
-              ( ( vec3 -0.5 0.5 0.5, vec3 0.5 0.5 0.5, vec3 -0.5 -0.5 0.5, vec3 0.5 -0.5 0.5 ), vec4 1 0 0 1 )
+              ( ( vec3 -1 1 1, vec3 1 1 1, vec3 -1 -1 1, vec3 1 -1 1 ), vec4 1 0 0 1 )
               -- Left
-            , ( ( vec3 -0.5 0.5 -0.5, vec3 -0.5 0.5 0.5, vec3 -0.5 -0.5 -0.5, vec3 -0.5 -0.5 0.5 ), vec4 0 1 0 1 )
+            , ( ( vec3 -1 1 -1, vec3 -1 1 1, vec3 -1 -1 -1, vec3 -1 -1 1 ), vec4 0 1 0 1 )
               -- Right
-            , ( ( vec3 0.5 0.5 0.5, vec3 0.5 0.5 -0.5, vec3 0.5 -0.5 0.5, vec3 0.5 -0.5 -0.5 ), vec4 0 0 1 1 )
+            , ( ( vec3 1 1 1, vec3 1 1 -1, vec3 1 -1 1, vec3 1 -1 -1 ), vec4 0 0 1 1 )
               -- Back
-            , ( ( vec3 0.5 0.5 -0.5, vec3 -0.5 0.5 -0.5, vec3 0.5 -0.5 -0.5, vec3 -0.5 -0.5 -0.5 ), vec4 1 1 0 1 )
+            , ( ( vec3 1 1 -1, vec3 -1 1 -1, vec3 1 -1 -1, vec3 -1 -1 -1 ), vec4 1 1 0 1 )
               -- Top
-            , ( ( vec3 -0.5 0.5 -0.5, vec3 0.5 0.5 -0.5, vec3 -0.5 0.5 0.5, vec3 0.5 0.5 0.5 ), vec4 0.5 0 0 1 )
+            , ( ( vec3 -1 1 -1, vec3 1 1 -1, vec3 -1 1 1, vec3 1 1 1 ), vec4 0.5 0 0 1 )
               -- Bottom
-            , ( ( vec3 -0.5 -0.5 0.5, vec3 0.5 -0.5 0.5, vec3 -0.5 -0.5 -0.5, vec3 0.5 -0.5 -0.5 ), vec4 0.5 0 0 1 )
+            , ( ( vec3 -1 -1 1, vec3 1 -1 1, vec3 -1 -1 -1, vec3 1 -1 -1 ), vec4 0.5 0 0 1 )
             ]
 
 
@@ -95,13 +99,13 @@ makeFace ( ( p1, p2, p3, p4 ), color ) =
     ]
 
 
-makeModelView : Brick -> Mat4
-makeModelView brick =
-    mul (T.moveTo brick.coord) <| mul (T.yaw brick.yaw) (T.pitch brick.pitch)
+makeModelView : Box -> Mat4
+makeModelView box =
+    mul (T.moveTo box.coord) <| mul (T.yaw box.yaw) (T.pitch box.pitch)
 
 
 
--- Vertex shader for the Brick.
+-- Vertex shader for the Box.
 
 
 vertexShader :
@@ -133,7 +137,7 @@ void main (void) {
 
 
 
--- Fragment shader for the Brick.
+-- Fragment shader for the Box.
 
 
 fragmentShader : Shader {} u { vcolor : Vec4 }
