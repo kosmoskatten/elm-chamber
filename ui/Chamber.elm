@@ -6,6 +6,7 @@ import Html exposing (..)
 import Html.Attributes as Attr
 import Math.Matrix4 exposing (Mat4, makePerspective)
 import Math.Vector3 exposing (vec3)
+import Room exposing (Room, makeRoom)
 import Time exposing (Time, inSeconds)
 import WebGL exposing (..)
 
@@ -13,6 +14,7 @@ import WebGL exposing (..)
 type alias Model =
     { perspective : Mat4
     , box : Box
+    , room : Room
     }
 
 
@@ -25,6 +27,7 @@ init =
     ( { perspective =
             makePerspective 45 (toFloat sceneWidth / toFloat sceneHeight) 0.1 100
       , box = makeBox <| vec3 0 10 -50
+      , room = makeRoom (vec3 0 -5 -20) (vec3 2 2 3)
       }
     , Cmd.none
     )
@@ -49,6 +52,7 @@ viewScene : Model -> Html Msg
 viewScene model =
     WebGL.toHtml [ Attr.width sceneWidth, Attr.height sceneHeight ] <|
         List.map (Box.render model.perspective) [ model.box ]
+            ++ List.map (Room.render model.perspective) [ model.room ]
 
 
 subscriptions : Model -> Sub Msg
