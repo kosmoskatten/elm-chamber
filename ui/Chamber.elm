@@ -21,12 +21,27 @@ type alias Model =
 
 type Msg
     = Animate Time
-    | BoxAddX
-    | BoxDecX
-    | BoxAddY
-    | BoxDecY
-    | BoxAddZ
-    | BoxDecZ
+      -- Box navigation.
+    | BoxAddPosX
+    | BoxDecPosX
+    | BoxAddPosY
+    | BoxDecPosY
+    | BoxAddPosZ
+    | BoxDecPosZ
+      -- Room navigation.
+    | RoomAddPosX
+    | RoomDecPosX
+    | RoomAddPosY
+    | RoomDecPosY
+    | RoomAddPosZ
+    | RoomDecPosZ
+      -- Room scaling.
+    | RoomAddScaleX
+    | RoomDecScaleX
+    | RoomAddScaleY
+    | RoomDecScaleY
+    | RoomAddScaleZ
+    | RoomDecScaleZ
 
 
 init : ( Model, Cmd Msg )
@@ -34,7 +49,7 @@ init =
     ( { perspective =
             makePerspective 45 (toFloat sceneWidth / toFloat sceneHeight) 0.1 100
       , box = makeBox <| vec3 0 0 0
-      , room = makeRoom (vec3 0 -5 -20) (vec3 2 2 3)
+      , room = makeRoom (vec3 0 0 0) (vec3 1 1 1)
       }
     , Cmd.none
     )
@@ -56,30 +71,68 @@ update msg model =
             , Cmd.none
             )
 
-        BoxAddX ->
+        BoxAddPosX ->
             ( { model | box = Box.move (vec3 1 0 0) model.box }, Cmd.none )
 
-        BoxDecX ->
+        BoxDecPosX ->
             ( { model | box = Box.move (vec3 -1 0 0) model.box }, Cmd.none )
 
-        BoxAddY ->
+        BoxAddPosY ->
             ( { model | box = Box.move (vec3 0 1 0) model.box }, Cmd.none )
 
-        BoxDecY ->
+        BoxDecPosY ->
             ( { model | box = Box.move (vec3 0 -1 0) model.box }, Cmd.none )
 
-        BoxAddZ ->
+        BoxAddPosZ ->
             ( { model | box = Box.move (vec3 0 0 1) model.box }, Cmd.none )
 
-        BoxDecZ ->
+        BoxDecPosZ ->
             ( { model | box = Box.move (vec3 0 0 -1) model.box }, Cmd.none )
+
+        RoomAddPosX ->
+            ( { model | room = Room.move (vec3 1 0 0) model.room }, Cmd.none )
+
+        RoomDecPosX ->
+            ( { model | room = Room.move (vec3 -1 0 0) model.room }, Cmd.none )
+
+        RoomAddPosY ->
+            ( { model | room = Room.move (vec3 0 1 0) model.room }, Cmd.none )
+
+        RoomDecPosY ->
+            ( { model | room = Room.move (vec3 0 -1 0) model.room }, Cmd.none )
+
+        RoomAddPosZ ->
+            ( { model | room = Room.move (vec3 0 0 1) model.room }, Cmd.none )
+
+        RoomDecPosZ ->
+            ( { model | room = Room.move (vec3 0 0 -1) model.room }, Cmd.none )
+
+        RoomAddScaleX ->
+            ( { model | room = Room.scale (vec3 1 0 0) model.room }, Cmd.none )
+
+        RoomDecScaleX ->
+            ( { model | room = Room.scale (vec3 -1 0 0) model.room }, Cmd.none )
+
+        RoomAddScaleY ->
+            ( { model | room = Room.scale (vec3 0 1 0) model.room }, Cmd.none )
+
+        RoomDecScaleY ->
+            ( { model | room = Room.scale (vec3 0 -1 0) model.room }, Cmd.none )
+
+        RoomAddScaleZ ->
+            ( { model | room = Room.scale (vec3 0 0 1) model.room }, Cmd.none )
+
+        RoomDecScaleZ ->
+            ( { model | room = Room.scale (vec3 0 0 -1) model.room }, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
     div [ Attr.style [ ( "width", "500px" ) ] ]
         [ viewScene model
-        , viewBoxControl model
+        , viewBoxPosControl model
+        , viewRoomPosControl model
+        , viewRoomScaleControl model
         ]
 
 
@@ -90,14 +143,38 @@ viewScene model =
             ++ List.map (Room.render model.perspective) [ model.room ]
 
 
-viewBoxControl : Model -> Html Msg
-viewBoxControl model =
+viewBoxPosControl : Model -> Html Msg
+viewBoxPosControl model =
     div [ Attr.style [ ( "border-style", "solid" ) ] ]
-        [ p [] [ text "Box Controls" ]
+        [ p [] [ text "Box Position" ]
         , table []
-            [ controlElement model "x: " BoxDecX BoxAddX (\m -> getX m.box.coord)
-            , controlElement model "y: " BoxDecY BoxAddY (\m -> getY m.box.coord)
-            , controlElement model "z: " BoxDecZ BoxAddZ (\m -> getZ m.box.coord)
+            [ controlElement model "x: " BoxDecPosX BoxAddPosX (\m -> getX m.box.coord)
+            , controlElement model "y: " BoxDecPosY BoxAddPosY (\m -> getY m.box.coord)
+            , controlElement model "z: " BoxDecPosZ BoxAddPosZ (\m -> getZ m.box.coord)
+            ]
+        ]
+
+
+viewRoomPosControl : Model -> Html Msg
+viewRoomPosControl model =
+    div [ Attr.style [ ( "border-style", "solid" ) ] ]
+        [ p [] [ text "Room Position" ]
+        , table []
+            [ controlElement model "x: " RoomDecPosX RoomAddPosX (\m -> getX m.room.coord)
+            , controlElement model "y: " RoomDecPosY RoomAddPosY (\m -> getY m.room.coord)
+            , controlElement model "z: " RoomDecPosZ RoomAddPosZ (\m -> getZ m.room.coord)
+            ]
+        ]
+
+
+viewRoomScaleControl : Model -> Html Msg
+viewRoomScaleControl model =
+    div [ Attr.style [ ( "border-style", "solid" ) ] ]
+        [ p [] [ text "Room Scale" ]
+        , table []
+            [ controlElement model "x: " RoomDecScaleX RoomAddScaleX (\m -> getX m.room.scale)
+            , controlElement model "y: " RoomDecScaleY RoomAddScaleY (\m -> getY m.room.scale)
+            , controlElement model "z: " RoomDecScaleZ RoomAddScaleZ (\m -> getZ m.room.scale)
             ]
         ]
 

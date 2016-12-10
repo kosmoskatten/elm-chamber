@@ -1,9 +1,9 @@
-module Room exposing (Room, makeRoom, render)
+module Room exposing (Room, makeRoom, move, scale, render)
 
 import Face exposing (..)
 import List exposing (concatMap)
 import Math.Matrix4 exposing (Mat4, makeScale, mul)
-import Math.Vector3 exposing (Vec3, vec3)
+import Math.Vector3 exposing (Vec3, vec3, add)
 import Math.Vector4 exposing (Vec4, vec4)
 import Transform as T
 import WebGL exposing (Drawable(..), Renderable, Shader)
@@ -22,6 +22,16 @@ makeRoom coord scale =
     , coord = coord
     , scale = scale
     }
+
+
+move : Vec3 -> Room -> Room
+move direction room =
+    { room | coord = add direction room.coord }
+
+
+scale : Vec3 -> Room -> Room
+scale difference room =
+    { room | scale = add difference room.scale }
 
 
 mesh : Drawable Vertex
