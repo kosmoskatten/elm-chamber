@@ -20,42 +20,31 @@ type alias Box =
     , coord : Vec3
     , pitch : Float
     , yaw : Float
-    , modelView : Mat4
     }
 
 
 makeBox : Vec3 -> Box
 makeBox coord =
-    let
-        box =
-            { mesh = mesh
-            , coord = coord
-            , pitch = 0
-            , yaw = 0
-            , modelView = Math.Matrix4.identity
-            }
-
-        modelView =
-            makeModelView box
-    in
-        { box | modelView = modelView }
+    { mesh = mesh
+    , coord = coord
+    , pitch = 0
+    , yaw = 0
+    }
 
 
 yaw : Float -> Box -> Box
 yaw theta box =
-    let
-        newBox =
-            { box | yaw = theta }
-
-        modelView =
-            makeModelView newBox
-    in
-        { newBox | modelView = modelView }
+    { box | yaw = theta }
 
 
 render : Mat4 -> Box -> Renderable
 render perspective box =
-    WebGL.render vertexShader fragmentShader box.mesh { perspective = perspective, modelView = box.modelView }
+    WebGL.render vertexShader
+        fragmentShader
+        box.mesh
+        { perspective = perspective
+        , modelView = makeModelView box
+        }
 
 
 mesh : Drawable Vertex
