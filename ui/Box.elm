@@ -2,6 +2,7 @@ module Box
     exposing
         ( Box
         , makeBox
+        , move
         , yaw
         , render
         )
@@ -9,7 +10,7 @@ module Box
 import Face exposing (..)
 import List exposing (concatMap)
 import Math.Matrix4 exposing (Mat4, identity, mul)
-import Math.Vector3 exposing (Vec3, vec3, getX, getY, getZ)
+import Math.Vector3 exposing (Vec3, vec3, add, getX, getY, getZ)
 import Math.Vector4 exposing (Vec4, vec4)
 import Transform as T
 import WebGL exposing (Drawable(..), Renderable, Shader)
@@ -30,6 +31,11 @@ makeBox coord =
     , pitch = 0
     , yaw = 0
     }
+
+
+move : Vec3 -> Box -> Box
+move direction box =
+    { box | coord = add direction box.coord }
 
 
 yaw : Float -> Box -> Box
