@@ -5,7 +5,7 @@ import Box exposing (Box, makeBox, yaw)
 import Html exposing (..)
 import Html.Attributes as Attr
 import Html.Events as Evts
-import Math.Matrix4 exposing (Mat4, makePerspective)
+import Math.Matrix4 exposing (Mat4, makePerspective, makeLookAt, mul)
 import Math.Vector3 exposing (Vec3, vec3, getX, getY, getZ)
 import Room exposing (Room, makeRoom)
 import Time exposing (Time, inSeconds)
@@ -14,6 +14,8 @@ import WebGL exposing (..)
 
 type alias Model =
     { perspective : Mat4
+    , cameraFocus : Vec3
+    , cameraEye : Vec3
     , box : Box
     , room : Room
     }
@@ -48,6 +50,8 @@ init : ( Model, Cmd Msg )
 init =
     ( { perspective =
             makePerspective 45 (toFloat sceneWidth / toFloat sceneHeight) 0.1 100
+      , cameraFocus = vec3 0 0 -100
+      , cameraEye = vec3 0 0 0
       , box = makeBox <| vec3 0 0 0
       , room = makeRoom (vec3 0 0 0) (vec3 1 1 1)
       }
@@ -138,9 +142,13 @@ view model =
 
 viewScene : Model -> Html Msg
 viewScene model =
-    WebGL.toHtml [ Attr.width sceneWidth, Attr.height sceneHeight ] <|
-        List.map (Box.render model.perspective) [ model.box ]
-            ++ List.map (Room.render model.perspective) [ model.room ]
+    let
+        viewerPerspective_ =
+            viewerPerspective model
+    in
+        WebGL.toHtml [ Attr.width sceneWidth, Attr.height sceneHeight ] <|
+            List.map (Box.render viewerPerspective_) [ model.box ]
+                ++ List.map (Room.render viewerPerspective_) [ model.room ]
 
 
 viewBoxPosControl : Model -> Html Msg
@@ -186,6 +194,15 @@ controlElement model label dec add getFrom =
         , td [] [ text <| label ++ toString (floor <| getFrom model) ]
         , td [] [ button [ Evts.onClick add ] [ text "+" ] ]
         ]
+
+
+viewerPerspective : Model -> Mat4
+viewerPerspective model =
+    let
+        camera =
+            makeLookAt model.cameraEye model.cameraFocus <| vec3 0 1 0
+    in
+        mul model.perspective camera
 
 
 subscriptions : Model -> Sub Msg
