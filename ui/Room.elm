@@ -11,20 +11,17 @@ import WebGL exposing (Drawable(..), Renderable, Shader)
 
 type alias Room =
     { mesh : Drawable Vertex
-    , modelView : Mat4
+    , coord : Vec3
+    , scale : Vec3
     }
 
 
 makeRoom : Vec3 -> Vec3 -> Room
 makeRoom coord scale =
     { mesh = mesh
-    , modelView = mul (T.moveTo coord) (makeScale scale)
+    , coord = coord
+    , scale = scale
     }
-
-
-render : Mat4 -> Room -> Renderable
-render perspective room =
-    WebGL.render vertexShader fragmentShader room.mesh { perspective = perspective, modelView = room.modelView }
 
 
 mesh : Drawable Vertex
@@ -36,3 +33,18 @@ mesh =
               -- Floor
             , ( ( vec3 -1 -1 -1, vec3 1 -1 -1, vec3 -1 -1 1, vec3 1 -1 1 ), vec4 0 1 0 1 )
             ]
+
+
+makeModelView : Room -> Mat4
+makeModelView room =
+    mul (T.moveTo room.coord) (makeScale room.scale)
+
+
+render : Mat4 -> Room -> Renderable
+render perspective room =
+    WebGL.render vertexShader
+        fragmentShader
+        room.mesh
+        { perspective = perspective
+        , modelView = makeModelView room
+        }
